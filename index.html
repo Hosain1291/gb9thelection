@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;900&display=swap');
-        body { font-family: 'Pretendard', sans-serif; background-color: #f1f5f9; scroll-behavior: smooth; }
+        body { font-family: 'Pretendard', sans-serif; background-color: #f1f5f9; scroll-behavior: smooth; padding-bottom: 50px; }
         
         /* 정당 배지 */
         .party-badge { padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; color: white; display: inline-block; }
@@ -44,12 +44,15 @@
         #map-wrapper {
             position: relative;
             width: 100%;
-            height: 500px;
+            height: 280px; /* 모바일에서 기본 높이 축소 */
             background-color: #f8fafc;
             border-radius: 1rem;
             overflow: hidden;
             cursor: grab;
             touch-action: none;
+        }
+        @media (min-width: 1024px) {
+            #map-wrapper { height: 500px; } /* 데스크톱에서 높이 복구 */
         }
         #map-wrapper:active { cursor: grabbing; }
         
@@ -89,30 +92,28 @@
         /* 줌 컨트롤 UI */
         .map-controls {
             position: absolute;
-            bottom: 1rem;
-            right: 1rem;
+            bottom: 0.5rem;
+            right: 0.5rem;
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
+            gap: 0.4rem;
             z-index: 20;
         }
         .control-btn {
-            width: 36px;
-            height: 36px;
+            width: 32px;
+            height: 32px;
             background: white;
             border: 1px solid #e2e8f0;
-            border-radius: 10px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
+            font-size: 1rem;
             font-weight: bold;
             color: #475569;
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
             transition: all 0.2s;
         }
-        .control-btn:hover { background: #f1f5f9; color: #0f172a; transform: scale(1.05); }
-        .control-btn:active { transform: scale(0.95); }
 
         /* 후보 카드 */
         .candidate-card { transition: all 0.2s ease; border-left-width: 6px; }
@@ -123,46 +124,22 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
-<body class="p-3 md:p-6">
+<body class="p-3 md:p-6 relative">
     <header class="max-w-7xl mx-auto mb-6 text-center">
         <h1 class="text-3xl md:text-4xl font-black text-slate-900 tracking-tighter mb-2">제9회 전국동시지방선거</h1>
         <p class="text-sm font-bold text-slate-500 uppercase tracking-widest">경상북도 기초단체장 후보 상황 시각화 [비공식]</p>
     </header>
 
     <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <!-- 왼쪽: 지도 및 지역 선택 -->
+        <!-- 왼쪽: 지역 선택 및 지도 -->
         <div class="lg:col-span-5 flex flex-col gap-4">
-            <!-- 지도 영역 -->
-            <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="font-black text-slate-800 flex items-center gap-2">
-                        <span class="w-1.5 h-5 bg-indigo-600 rounded-full"></span>
-                        경상북도 시군구 지도
-                    </h3>
-                    <span class="text-[10px] font-bold text-slate-400">마우스 휠로 확대/축소 가능</span>
-                </div>
-                
-                <div id="map-wrapper">
-                    <div id="map-container">
-                        <div id="loading-map" class="text-slate-400 font-bold animate-pulse text-sm">지도를 불러오고 있습니다...</div>
-                    </div>
-                    <!-- 줌 컨트롤 -->
-                    <div class="map-controls">
-                        <button class="control-btn" onclick="handleZoom(0.2)" title="확대">+</button>
-                        <button class="control-btn" onclick="handleZoom(-0.2)" title="축소">-</button>
-                        <button class="control-btn" onclick="resetMap()" title="초기화">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 지역 버튼 그리드 -->
-            <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200">
+            
+            <!-- 1. 지역 버튼 그리드 (모바일 우선 순위) -->
+            <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 order-1 lg:order-2">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="font-black text-slate-800 flex items-center gap-2">
                         <span class="w-1.5 h-5 bg-red-600 rounded-full"></span>
-                        지역 빠른 선택
+                        지역 선택
                     </h3>
                 </div>
                 
@@ -176,13 +153,38 @@
                     <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 party-indie rounded-sm"></span> 무소속/기타</div>
                 </div>
             </div>
+
+            <!-- 2. 지도 영역 (모바일에서 축소 및 아래로 배치) -->
+            <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 order-2 lg:order-1">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-black text-slate-800 flex items-center gap-2">
+                        <span class="w-1.5 h-5 bg-indigo-600 rounded-full"></span>
+                        시군구 지도
+                    </h3>
+                    <span class="text-[10px] font-bold text-slate-400 hidden sm:inline">휠/터치로 확대·축소 및 이동</span>
+                </div>
+                
+                <div id="map-wrapper">
+                    <div id="map-container">
+                        <div id="loading-map" class="text-slate-400 font-bold animate-pulse text-sm">지도를 불러오고 있습니다...</div>
+                    </div>
+                    <!-- 줌 컨트롤 -->
+                    <div class="map-controls">
+                        <button class="control-btn" onclick="handleZoom(0.2)" title="확대">+</button>
+                        <button class="control-btn" onclick="handleZoom(-0.2)" title="축소">-</button>
+                        <button class="control-btn" onclick="resetMap()" title="초기화">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- 오른쪽: 후보 리스트 -->
-        <div id="detail-view" class="lg:col-span-7 flex flex-col gap-4">
+        <div id="detail-view" class="lg:col-span-7 flex flex-col gap-4 order-3">
             <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 flex items-center justify-between">
                 <div>
-                    <h2 id="selected-title" class="text-2xl font-black text-slate-800">지역을 선택하세요</h2>
+                    <h2 id="selected-title" class="text-2xl font-black text-slate-800">포항시</h2>
                     <p id="selected-subtitle" class="text-xs font-bold text-blue-600 mt-0.5">후보군 분석 데이터 [비공식]</p>
                 </div>
                 <div id="region-stats" class="px-4 py-2 bg-slate-900 text-white rounded-2xl text-xs font-black">
@@ -191,12 +193,20 @@
             </div>
 
             <div id="candidate-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-3 overflow-y-auto max-h-[calc(100vh-250px)] lg:max-h-[800px] pr-1 custom-scrollbar">
-                <div class="text-center py-20 text-slate-400 font-bold">
-                    왼쪽 지도나 버튼에서 시·군을 선택해 주세요.
-                </div>
+                <!-- 후보 카드 생성 -->
             </div>
         </div>
     </main>
+
+    <!-- 기준일 및 출처 표시 -->
+    <footer class="fixed bottom-0 left-0 w-full lg:w-auto lg:left-auto lg:right-4 p-3 z-50 pointer-events-none">
+        <div class="bg-white/90 backdrop-blur-sm border border-slate-200 px-3 py-1.5 rounded-full shadow-lg inline-flex items-center gap-3 float-right pointer-events-auto">
+            <span class="text-[10px] font-black text-slate-800 bg-slate-100 px-2 py-0.5 rounded-full">비공식 자료</span>
+            <div class="text-[10px] font-bold text-slate-500 leading-tight">
+                기준: 2026.03.25. <span class="mx-1 text-slate-300">|</span> 출처: 나무위키, 중앙선관위
+            </div>
+        </div>
+    </footer>
 
     <script>
         const electionData = {
@@ -220,7 +230,7 @@
                 { name: "박병훈", party: "국민의힘", status: "예상", info: "전 경북도의원" },
                 { name: "여준기", party: "국민의힘", status: "예상", info: "경주시체육회장" },
                 { name: "이창화", party: "국민의힘", status: "예상", info: "전 보훈공단 상임감사" },
-                { name: "정병두", party: "국민의힘", status: "예상", info: "국민통합시민연대 자문위원" },
+                { name: "정병", party: "국민의힘", status: "예상", info: "국민통합시민연대 자문위원" },
                 { name: "여호수", party: "진보당", status: "예상", info: "경주시 지역위원장" }
             ],
             "김천시": [
@@ -229,7 +239,7 @@
                 { name: "나영민", party: "국민의힘", status: "예비후보", info: "김천시의회 의장" },
                 { name: "이션명", party: "무소속", status: "예상", info: "전 김천시의원" },
                 { name: "이창재", party: "무소속", status: "예상", info: "전 김천시 부시장" },
-                { name: "조상명", party: "무소속", status: "예상", info: "전 대통령실 국정상황실장" }
+                { name: "조상", party: "무소속", status: "예상", info: "전 대통령실 국정상황실장" }
             ],
             "안동시": [
                 { name: "권용수", party: "더불어민주당", status: "탈락", info: "경북장애인복지단체협의회 후원회장" },
@@ -289,7 +299,7 @@
                 { name: "장근호", party: "국민의힘", status: "예비후보", info: "전 의성경찰청장" },
                 { name: "최유철", party: "국민의힘", status: "예비후보", info: "전 의성군의회의장" },
                 { name: "최익봉", party: "국민의힘", status: "예비후보", info: "전 육군특수전사령관" },
-                { name: "임주호", party: "더불어민주당", status: "예상", info: "전 경북도의원" },
+                { name: "김동윤", party: "더불어민주당", status: "예상", info: "의성군 당원협의회장" },
                 { name: "이왕식", party: "무소속", status: "예비후보", info: "전 경북도의원" }
             ],
             "청송군": [
@@ -355,7 +365,7 @@
                 { name: "홍성구", party: "국민의힘", status: "예비후보", info: "전 김천시 부시장" },
             ],
             "울진군": [
-                { name: "김진", party: "더불어민주당", status: "공천", info: "민주평통 울진군협의회장" },
+                { name: "김진원", party: "더불어민주당", status: "예상", info: "민주평통 울진군협의회장" },
                 { name: "손병복", party: "국민의힘", status: "예상", info: "현 울진군수" },
                 { name: "전찬걸", party: "국민의힘", status: "예비후보", info: "전 울진군수" },
                 { name: "김창수", party: "무소속", status: "예상", info: "전 울진군 자치행정국장" },
@@ -390,7 +400,6 @@
             "기타정당": "party-indie"
         };
 
-        // 지도 상태 관리를 위한 변수
         let mapState = {
             scale: 1,
             translateX: 0,
@@ -463,27 +472,23 @@
             }
         }
 
-        // 줌 및 드래그 인터랙션 초기화
         function initMapInteractions() {
             const wrapper = document.getElementById('map-wrapper');
             const container = document.getElementById('map-container');
 
-            // 휠 줌
             wrapper.onwheel = (e) => {
                 e.preventDefault();
                 const delta = e.deltaY > 0 ? -0.1 : 0.1;
                 handleZoom(delta);
             };
 
-            // 드래그 팬 시작
             wrapper.onmousedown = (e) => {
                 mapState.isDragging = true;
-                mapState.hasMoved = false; // 단순 클릭인지 판별용
+                mapState.hasMoved = false;
                 mapState.startX = e.clientX - mapState.translateX;
                 mapState.startY = e.clientY - mapState.translateY;
             };
 
-            // 드래그 중
             window.onmousemove = (e) => {
                 if (!mapState.isDragging) return;
                 mapState.hasMoved = true;
@@ -492,12 +497,8 @@
                 updateMapTransform();
             };
 
-            // 드래그 종료
-            window.onmouseup = () => {
-                mapState.isDragging = false;
-            };
+            window.onmouseup = () => { mapState.isDragging = false; };
 
-            // 터치 지원 (모바일)
             wrapper.ontouchstart = (e) => {
                 const touch = e.touches[0];
                 mapState.isDragging = true;
@@ -515,9 +516,7 @@
                 updateMapTransform();
             };
 
-            wrapper.ontouchend = () => {
-                mapState.isDragging = false;
-            };
+            wrapper.ontouchend = () => { mapState.isDragging = false; };
         }
 
         function handleZoom(delta) {
@@ -532,14 +531,7 @@
         }
 
         function resetMap() {
-            mapState = {
-                scale: 1,
-                translateX: 0,
-                translateY: 0,
-                isDragging: false,
-                startX: 0,
-                startY: 0
-            };
+            mapState = { scale: 1, translateX: 0, translateY: 0, isDragging: false, startX: 0, startY: 0 };
             updateMapTransform();
         }
 
@@ -589,7 +581,7 @@
 
                 card.innerHTML = `
                     <div class="flex items-center justify-between">
-                        <span class="party-badge ${partyClasses[category] || 'party-indie'}">${category === "기타정당" ? c.party : c.party}</span>
+                        <span class="party-badge ${partyClasses[category] || 'party-indie'}">${c.party}</span>
                         <span class="status-tag ${statusClass}">${isNominated ? '공천 확정' : c.status}</span>
                     </div>
                     <div>
